@@ -1,8 +1,10 @@
+from django.db.models import Q
 from rest_framework import viewsets, permissions, status
 from django.contrib.auth.models import User
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api.exceptions.auth import UserNameOrEmailExistsException
 from api.exceptions.generic import RequiredDataNotProvidedException
 
 
@@ -20,6 +22,9 @@ class CustomAuthViewSet(viewsets.ViewSet):
 
         if not is_required_data:
             raise RequiredDataNotProvidedException
+
+        if User.objects.filter(Q(username=data['username']) | Q(email=data['email'])):
+            raise UserNameOrEmailExistsException
 
         user = User.objects.create_user(data['username'], data['email'], data['password'])
         user.first_name = data['first_name']
