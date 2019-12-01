@@ -15,6 +15,8 @@ Including another URLconf
 """
 from django.urls import path, include
 from rest_framework import routers
+
+from api.views.custom_auth import CustomAuthViewSet
 from api.views.song import SongViewSet
 from api.views.songstat import SongStatViewSet
 
@@ -28,7 +30,11 @@ def register_routes():
         {
             'base_name': r'songstats',
             'ModelViewSet': SongStatViewSet
-        }
+        },
+        {
+            'base_name': r'auth',
+            'ModelViewSet': CustomAuthViewSet
+        },
     ]
 
     for path in routes_to_be_registred:
