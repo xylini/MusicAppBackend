@@ -3,7 +3,6 @@ from rest_framework import viewsets, permissions, status
 from django.contrib.auth.models import User
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
 from api.exceptions.auth import UserNameOrEmailExistsException
 from api.exceptions.generic import RequiredDataNotProvidedException
 

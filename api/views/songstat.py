@@ -1,10 +1,10 @@
 import jwt
 from django.db.models import Sum
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from api.exceptions.generic import RequiredDataNotProvidedException
-from api.models import SongStat
+from api.exceptions.generic import RequiredParamsNotProvidedException
+from api.models import SongStat, Song
 from api.serializers.songstat import SongStatSerializer
 
 
@@ -35,12 +35,14 @@ class SongStatViewSet(viewsets.ViewSet):
         return Response(response_data, status=status.HTTP_200_OK)
 
     def create(self, request):
-        data = request.data
-        is_whole_data_provided = len({'practice_time', 'high_score', 'song_id'} - set(data)) == 0
-        user_id = jwt.decode(request.auth, verify=False)['user_id']
+        params = set(request.query_params)
+        required_params = {'song_id', 'practice_time', 'high_score'}
+        are_required_params = len(required_params - params) == 0
+        if not are_required_params:
+            raise RequiredParamsNotProvidedException
 
-        if not is_whole_data_provided:
-            raise RequiredDataNotProvidedException
+        user_id = jwt.decode(request.auth, verify=False)['user_id']
+        data = request.query_params
 
         song_stat_entity = SongStat(
             user_id=user_id,
@@ -54,3 +56,20 @@ class SongStatViewSet(viewsets.ViewSet):
         song_stat_serialized = SongStatSerializer(song_stat_entity).data
 
         return Response(song_stat_serialized, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def all_songs(self, request):
+        songs = Song.objects.all()
+        user_id = jwt.decode(request.auth, verify=False)['user_id']
+        data_to_send = []
+
+        for song in songs:
+            song_stats = SongStat.objects.filter(user_id=user_id, song_id=song.id).order_by('-high_score').first()
+            high_score = song_stats.high_score if song_stats is not None else 0
+
+            data_to_send.append({
+                'song_id': song.id,
+                'high_score': high_score
+            })
+
+        return Response(data_to_send, status=status.HTTP_200_OK)

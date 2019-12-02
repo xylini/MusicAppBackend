@@ -1,11 +1,11 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from api.exceptions.song import SongDoesNotExistsException, RequiredParamsNotProvidedException
+from api.exceptions.generic import RequiredParamsNotProvidedException
+from api.exceptions.song import SongDoesNotExistsException
 from api.models import Song
 from api.serializers.song import SongSerializer
 from music_app_backend.settings import MEDIA_ROOT
-
 import magenta.music as mm
 from magenta.models.melody_rnn import melody_rnn_sequence_generator
 from magenta.music import midi_file_to_note_sequence
